@@ -669,46 +669,108 @@ function renderSummary(){
 }
 
 // ========================= EXCEL =========================
+function fnExcel(n){
+  if(!n||n===0)return null;
+  if(n===Math.floor(n))return String(n);
+  if(Math.abs(n%1-.5)<.001)return Math.floor(n)+' 1/2';
+  return String(n);
+}
+
+function buildLineaPedido(prod, obs, isKg){
+  const partes=[];
+  if(prod.pollo>0)    partes.push(fnExcel(prod.pollo)+'  C/  POLLO');
+  if(prod.x7>0)       partes.push(fnExcel(prod.x7)+'  C/  X 7');
+  if(prod.x8>0)       partes.push(fnExcel(prod.x8)+'  C/  X 8');
+  if(prod.x9>0)       partes.push(fnExcel(prod.x9)+'  C/  X 9');
+  if(prod.sup10>0)    partes.push(fnExcel(prod.sup10)+'  C/ SUP X 10');
+  if(prod.interf>0)   partes.push(fnExcel(prod.interf)+'  C/  INTERF');
+  if(prod.fresca>0)   partes.push(fnExcel(prod.fresca)+'  C/  FRESCA');
+  if(prod.sup15>0)    partes.push(fnExcel(prod.sup15)+'  C/ SUP X 15');
+  if(prod.cuartos>0)  partes.push(fnExcel(prod.cuartos)+'  C/  4TOS');
+  if(prod.pmd>0)      partes.push(fnExcel(prod.pmd)+'  C/  PMD');
+  if(prod.extra>0)    partes.push(fnExcel(prod.extra)+'  C/  EXTRA');
+  if(prod.bco1>0)     partes.push(fnExcel(prod.bco1)+'  C/  BLANCO N1');
+  if(prod.bco2>0)     partes.push(fnExcel(prod.bco2)+'  C/  BLANCO N2');
+  if(prod.color>0)    partes.push(fnExcel(prod.color)+'  C/  COLOR');
+  if(prod.tirita>0)   partes.push(fnExcel(prod.tirita)+'  C/  TIRITA');
+  if(prod.mila>0)     partes.push(fnExcel(prod.mila)+'  C/  MILA');
+  if(prod.patitas>0)  partes.push(fnExcel(prod.patitas)+'  C/  PATITAS');
+  if(prod.medallon>0) partes.push(fnExcel(prod.medallon)+'  C/  MEDALLON');
+  if(isKg){
+    if(prod.sup_kg>0)     partes.push(fnExcel(prod.sup_kg)+'  SUPREMAS');
+    if(prod.cuartos_kg>0) partes.push(fnExcel(prod.cuartos_kg)+'  4TOS');
+  }
+  var linea=partes.join('  +  ');
+  if(obs) linea=linea+(linea?'  ':'')+obs.toUpperCase();
+  return linea;
+}
+
 function exportarExcel(){
   if(!pedidos.length){alert('No hay pedidos para exportar');return;}
   const fechaVal=document.getElementById('fechaPedido').value;
-  const [yyyy,mm,dd]=fechaVal.split('-');
-  const fechaStr=`${dd}/${mm}/${yyyy}`;
+  const parts=fechaVal.split('-');
+  const yyyy=parts[0],mm=parts[1],dd=parts[2];
+  const fechaDate=new Date(parseInt(yyyy),parseInt(mm)-1,parseInt(dd));
+  const excelEpoch=new Date(1899,11,30);
+  const fechaSerial=Math.round((fechaDate-excelEpoch)/(1000*60*60*24));
   const wb=XLSX.utils.book_new();
-  const COLS=[];
-  CATEGORIAS.forEach(cat=>cat.prods.forEach(p=>COLS.push({...p,cat:cat.label})));
-  KG_PRODS.forEach(p=>COLS.push({...p,cat:'Por kg'}));
   const porR={};REPARTOS_DISPONIBLES.forEach(r=>porR[r]=[]);
   pedidos.forEach(p=>{if(!porR[p.reparto])porR[p.reparto]=[];porR[p.reparto].push(p);});
-  const wsData=[[`PEDIDOS ${fechaStr}`],[]];
-  REPARTOS_DISPONIBLES.forEach(r=>{
-    const ps=porR[r];if(!ps||!ps.length)return;
-    wsData.push([`REPARTO: ${r}`]);
-    wsData.push(['CLIENTE','DIRECCIÓN',...COLS.map(c=>c.label),'OBSERVACIONES']);
-    ps.forEach(p=>{
-      const cli=getCliente(p.cliente);
-      const isKg=cli?cli.kg:false;
-      wsData.push([p.cliente+(isKg?' (kg)':''),cli?cli.dir:'',...COLS.map(c=>p.prod[c.key]||''),p.obs||'']);
+
+  // HOJA PEDIDOS formato original
+  var wsPedidos=[
+    ['Nota de pedido',''],
+    ['FECHA', fechaSerial],
+    ['','']
+  ];
+  REPARTOS_DISPONIBLES.forEach(function(r){
+    var ps=porR[r]; if(!ps||!ps.length)return;
+    wsPedidos.push(['--- REPARTO '+r+' ---','']);
+    ps.forEach(function(p){
+      var cli=getCliente(p.cliente);
+      var isKg=cli?cli.kg:false;
+      var linea=buildLineaPedido(p.prod, p.obs, isKg);
+      wsPedidos.push([p.cliente,'']);
+      wsPedidos.push(['', linea]);
     });
-    const tot=calcTot(ps);
-    wsData.push(['TOTAL','',...COLS.map(c=>tot[c.key]||''),'']);
-    wsData.push([]);
+    var tot=calcTot(ps);
+    var totLinea=buildLineaPedido(tot,'',false);
+    wsPedidos.push(['','']);
+    wsPedidos.push(['TOTAL '+r, totLinea]);
+    wsPedidos.push(['','']);
   });
-  const ws=XLSX.utils.aoa_to_sheet(wsData);
-  ws['!cols']=[{wch:26},{wch:30},...COLS.map(()=>({wch:12})),{wch:28}];
-  XLSX.utils.book_append_sheet(wb,ws,'Repartos');
-  const wsRes=[[`RESUMEN GENERAL ${fechaStr}`],[],['REPARTO',...COLS.map(c=>c.label)]];
-  REPARTOS_DISPONIBLES.forEach(r=>{
-    const ps=porR[r];if(!ps||!ps.length)return;
-    const tot=calcTot(ps);
-    wsRes.push([r,...COLS.map(c=>tot[c.key]||'')]);
+
+  var ws=XLSX.utils.aoa_to_sheet(wsPedidos);
+  ws['!cols']=[{wch:28},{wch:90}];
+
+  // Formato fecha en B2
+  var cellB2=XLSX.utils.encode_cell({r:1,c:1});
+  if(ws[cellB2]){ws[cellB2].t='n';ws[cellB2].z='DD/MM/YYYY';}
+
+  XLSX.utils.book_append_sheet(wb,ws,'Pedidos');
+
+  // HOJA RESUMEN con columnas
+  var COLS=[];
+  CATEGORIAS.forEach(function(cat){cat.prods.forEach(function(p){COLS.push(p);});});
+  KG_PRODS.forEach(function(p){COLS.push(p);});
+  var wsRes=[
+    ['RESUMEN GENERAL '+dd+'/'+mm+'/'+yyyy],
+    [],
+    ['REPARTO'].concat(COLS.map(function(c){return c.label;}))
+  ];
+  REPARTOS_DISPONIBLES.forEach(function(r){
+    var ps=porR[r];if(!ps||!ps.length)return;
+    var tot=calcTot(ps);
+    wsRes.push([r].concat(COLS.map(function(c){return tot[c.key]||'';})));
   });
-  const totG=calcTot(pedidos);
-  wsRes.push([],['TOTAL GENERAL',...COLS.map(c=>totG[c.key]||'')]);
-  const ws2=XLSX.utils.aoa_to_sheet(wsRes);
-  ws2['!cols']=[{wch:20},...COLS.map(()=>({wch:12}))];
+  var totG=calcTot(pedidos);
+  wsRes.push([]);
+  wsRes.push(['TOTAL GENERAL'].concat(COLS.map(function(c){return totG[c.key]||'';})));
+  var ws2=XLSX.utils.aoa_to_sheet(wsRes);
+  ws2['!cols']=[{wch:20}].concat(COLS.map(function(){return {wch:13};}));
   XLSX.utils.book_append_sheet(wb,ws2,'Resumen');
-  XLSX.writeFile(wb,`pedidos_${yyyy}${mm}${dd}.xlsx`);
+
+  XLSX.writeFile(wb,'pedidos_'+yyyy+mm+dd+'.xlsx');
 }
 
 // ========================= CLIENTES ADMIN =========================
