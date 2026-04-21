@@ -267,17 +267,32 @@ function calcTot(ps){
 }
 function getCli(nombre){return clientes.find(c=>c.nombre===nombre)||null;}
 
-function parsearDatos(){
+async function parsearDatos(){
   const params=new URLSearchParams(window.location.search);
-  const d=params.get('d');
-  if(!d) return false;
-  try{
-    const raw=JSON.parse(decodeURIComponent(escape(atob(d))));
+  const binId=params.get('bin');
+  const rawKey=params.get('k')||''; const key=rawKey?atob(rawKey):'';
+  if(binId){
+    const headers={};
+    if(key) headers['X-Access-Key']=key;
+    const res=await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`,{headers});
+    const json=await res.json();
+    if(!res.ok) throw new Error('Error '+res.status+': '+(json.message||'Sin datos'));
+    // JSONBin v3 devuelve los datos en json.record
+    const raw=json.record||json;
+    if(!raw.pedidos) throw new Error('Estructura inesperada: '+JSON.stringify(json).substring(0,150));
     pedidos=raw.pedidos||[];
     clientes=raw.clientes||[];
     fecha=raw.fecha||'';
     return true;
-  }catch(e){return false;}
+  }
+  // Fallback: leer de URL ?d= (legacy)
+  const d=params.get('d');
+  if(!d) throw new Error('El link no contiene datos. Pedile al encargado que genere un nuevo link.');
+  const raw=JSON.parse(decodeURIComponent(escape(atob(d))));
+  pedidos=raw.pedidos||[];
+  clientes=raw.clientes||[];
+  fecha=raw.fecha||'';
+  return true;
 }
 
 function formatFecha(f){
@@ -423,18 +438,14 @@ function mostrarError(msg){
     </div>`;
 }
 
-function arrancar(){
-  // Animacion splash
+async function arrancar(){
   const bar=document.getElementById('splashBar');
-  bar.style.width='60%';
-  setTimeout(()=>{
-    const ok=parsearDatos();
+  bar.style.width='40%';
+  try{
+    await parsearDatos();
     bar.style.width='100%';
     setTimeout(()=>{
       document.getElementById('splash').classList.add('hide');
-      if(!ok){mostrarError('El link no contiene datos válidos o expiró.');return;}
-      // Mostrar app
-      const [yyyy,mm,dd]=fecha.split('-');
       document.getElementById('hFecha').textContent=formatFecha(fecha);
       document.getElementById('hBadge').textContent=`${pedidos.length} pedido${pedidos.length!==1?'s':''}`;
       document.getElementById('appHeader').style.display='flex';
@@ -442,8 +453,14 @@ function arrancar(){
       renderFiltros();
       renderTotales();
       renderContent();
-    },400);
-  },600);
+    },350);
+  }catch(e){
+    bar.style.width='100%';
+    setTimeout(()=>{
+      document.getElementById('splash').classList.add('hide');
+      mostrarError(e.message);
+    },350);
+  }
 }
 
 arrancar();
