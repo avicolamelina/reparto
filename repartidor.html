@@ -103,6 +103,12 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:var
 .empty-msg{font-size:1rem;color:var(--text2);line-height:1.6;}
 .error-box{background:#fdf0ef;border:2px solid #f5b7b1;border-radius:10px;padding:1rem;font-size:.9rem;color:#a93226;margin-top:.5rem;}
 
+/* COMENTARIO */
+.comentario-wrap{margin-top:.6rem;}
+.comentario-input{width:100%;padding:.5rem .7rem;border:2px solid var(--border);border-radius:8px;font-family:var(--font);font-size:.9rem;color:var(--text);background:#f7f7f5;resize:none;outline:none;min-height:52px;transition:border-color .2s;}
+.comentario-input:focus{border-color:#2980b9;background:#fff;}
+.comentario-input::placeholder{color:#aaa;}
+
 /* READONLY BANNER */
 .readonly-banner{background:var(--green);color:#fff;text-align:center;padding:.6rem;font-size:.9rem;font-weight:700;letter-spacing:.04em;}
 </style>
@@ -120,7 +126,10 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:var
   <div class="header">
     <div class="header-top">
       <div class="header-title">🐔 Reparto del día</div>
-      <div class="header-badge" id="hBadge"></div>
+      <div style="display:flex;align-items:center;gap:.5rem">
+        <button onclick="sincronizar()" id="btnSync" style="padding:.3rem .8rem;background:#2980b9;color:#fff;border:none;border-radius:6px;font-size:.85rem;font-weight:700;cursor:pointer">↻ Actualizar</button>
+        <div class="header-badge" id="hBadge"></div>
+      </div>
     </div>
     <div style="display:flex;justify-content:space-between;align-items:center">
       <div class="header-fecha" id="hFecha"></div>
@@ -150,7 +159,10 @@ const KG=[{key:'sup_kg',label:'Sup (kg)',pillCls:'pill-kg'},{key:'cuartos_kg',la
 const REPARTOS=['ARIEL','GABRIEL','MARTIN','FEDERICO','DEPOSITO'];
 
 let pedidos=[],clientes=[],fecha='',filtro='TODOS';
-const entregados=new Set();
+let BINID='', APIKEY='';
+// estado: {id: {done: bool, comentario: str}}
+let estado={};
+let guardandoEstado=false;
 
 function allKeys(){const k=[];CATS.forEach(c=>c.prods.forEach(p=>k.push(p.key)));KG.forEach(p=>k.push(p.key));return k;}
 function calcTot(ps){const t={};allKeys().forEach(k=>t[k]=0);ps.forEach(p=>allKeys().forEach(k=>t[k]+=(p.prod[k]||0)));return t;}
@@ -172,6 +184,7 @@ async function parsearDatos(){
   const rawKey=params.get('k')||'';
   const key=rawKey?atob(rawKey):'';
   if(binId){
+    BINID=binId; APIKEY=key;
     const headers={};
     if(key)headers['X-Access-Key']=key;
     const res=await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`,{headers});
@@ -180,6 +193,8 @@ async function parsearDatos(){
     const raw=json.record||json;
     if(!raw.pedidos)throw new Error('Estructura inesperada: '+JSON.stringify(json).substring(0,120));
     pedidos=raw.pedidos||[];clientes=raw.clientes||[];fecha=raw.fecha||'';
+    // Cargar estado de entregas si existe en el bin
+    if(raw.estado) estado=raw.estado;
     return;
   }
   const d=params.get('d');
@@ -199,7 +214,35 @@ function renderFiltros(){
 }
 
 function setFiltro(r){filtro=r;render();}
-function toggleEntrega(id){if(entregados.has(id))entregados.delete(id);else entregados.add(id);render();}
+function toggleEntrega(id){
+  if(!estado[id]) estado[id]={done:false,comentario:''};
+  estado[id].done=!estado[id].done;
+  render();
+  guardarEstado();
+}
+function guardarComentario(id){
+  const el=document.getElementById('com_'+id);
+  if(!el)return;
+  if(!estado[id])estado[id]={done:false,comentario:''};
+  estado[id].comentario=el.value;
+  guardarEstado();
+  // feedback visual
+  el.style.borderColor='var(--green)';
+  setTimeout(()=>{el.style.borderColor='';},1200);
+}
+async function guardarEstado(){
+  if(!BINID||!APIKEY||guardandoEstado)return;
+  guardandoEstado=true;
+  try{
+    const datos={pedidos,clientes,fecha,estado};
+    await fetch(`https://api.jsonbin.io/v3/b/${BINID}`,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json','X-Access-Key':APIKEY},
+      body:JSON.stringify(datos)
+    });
+  }catch(e){console.error('Error guardando estado:',e);}
+  finally{guardandoEstado=false;}
+}
 
 function render(){
   renderFiltros();
@@ -208,7 +251,7 @@ function render(){
   const reps=filtro==='TODOS'?REPARTOS.filter(r=>porR[r].length>0):[filtro];
   const pedsFiltro=reps.flatMap(r=>porR[r]||[]);
   const tot=calcTot(pedsFiltro);
-  const entregadosN=pedsFiltro.filter(p=>entregados.has(p.id)).length;
+  const entregadosN=pedsFiltro.filter(p=>estado[p.id]&&estado[p.id].done).length;
   const pendientes=pedsFiltro.length-entregadosN;
 
   // Header estado
@@ -246,7 +289,8 @@ function render(){
     const mapsUrl=dirs.length>1?`https://www.google.com/maps/dir/${dirs.map(d=>encodeURIComponent(d)).join('/')}`:(dirs.length===1?`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(dirs[0])}`:'');
     const mapsBtn=mapsUrl?`<a href="${mapsUrl}" target="_blank" class="maps-recorrido">🗺 Recorrido completo · ${dirs.length} paradas</a>`:'';
     const cards=ps.map(p=>{
-      const done=entregados.has(p.id);
+      const done=!!(estado[p.id]&&estado[p.id].done);
+      const comentario=(estado[p.id]&&estado[p.id].comentario)||'';
       const cli=getCli(p.cliente);
       const dir=cli&&cli.dir?cli.dir:'';
       const grupos=CATS.map(cat=>{
@@ -272,6 +316,9 @@ function render(){
           ${grupos||kgHtml?grupos+kgHtml:'<span style="color:var(--text2)">Sin productos</span>'}
           ${p.obs?`<div class="cli-obs">📝 ${p.obs}</div>`:''}
           ${dir?`<div class="cli-dir"><span class="cli-dir-txt">📍 ${dir}</span><a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(dir)}" target="_blank" class="cli-maps-btn">Cómo llegar</a></div>`:''}
+          <div class="comentario-wrap">
+            <textarea class="comentario-input" id="com_${p.id}" placeholder="Comentario de entrega: faltó producto, inconveniente, etc..." onblur="guardarComentario(${p.id})">${comentario}</textarea>
+          </div>
         </div>
       </div>`;
     }).join('');
@@ -289,6 +336,36 @@ function mostrarError(msg){
   document.getElementById('content').innerHTML=`<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-msg">${msg}</div><div class="error-box">Pedile al encargado que genere un nuevo link desde la app de gestión.</div></div>`;
   document.getElementById('hBadge').textContent='Error';
   document.getElementById('hFecha').textContent='';
+}
+
+async function sincronizar(){
+  if(!BINID)return;
+  const btn=document.getElementById('btnSync');
+  btn.textContent='⏳';btn.disabled=true;
+  try{
+    const headers={};
+    if(APIKEY)headers['X-Access-Key']=APIKEY;
+    const res=await fetch(`https://api.jsonbin.io/v3/b/${BINID}/latest`,{headers});
+    const json=await res.json();
+    const raw=json.record||json;
+    if(raw.estado){
+      // Merge: keep local done=true, update with remote
+      Object.keys(raw.estado).forEach(id=>{
+        if(!estado[id]) estado[id]=raw.estado[id];
+        else{
+          // keep done if local is true
+          if(!estado[id].done) estado[id].done=raw.estado[id].done;
+          if(!estado[id].comentario) estado[id].comentario=raw.estado[id].comentario;
+        }
+      });
+    }
+    render();
+    btn.textContent='✓';
+    setTimeout(()=>{btn.textContent='↻ Actualizar';btn.disabled=false;},1500);
+  }catch(e){
+    btn.textContent='Error';
+    setTimeout(()=>{btn.textContent='↻ Actualizar';btn.disabled=false;},2000);
+  }
 }
 
 async function arrancar(){
