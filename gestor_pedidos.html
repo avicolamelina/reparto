@@ -1075,12 +1075,27 @@ async function actualizarEstadoGestor(){
   const btn=document.getElementById('btnActualizarEstado');
   if(btn){btn.textContent='⏳';btn.disabled=true;}
   try{
+    // Buscar estadoBinId: primero localStorage, luego dentro del bin de pedidos
+    let estadoBinId=localStorage.getItem('estado_bin_'+binId);
     const headers={'X-Access-Key':key};
-    const res=await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`,{headers});
-    const json=await res.json();
-    const raw=json.record||json;
-    const est=raw.estado||{};
-    const peds=raw.pedidos||pedidos;
+    if(!estadoBinId){
+      // Leer el bin de pedidos para ver si tiene referencia al bin de estado
+      const resPed=await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`,{headers});
+      const jPed=await resPed.json();
+      const datoPed=jPed.record||jPed;
+      if(datoPed.estadoBinId){
+        estadoBinId=datoPed.estadoBinId;
+        localStorage.setItem('estado_bin_'+binId, estadoBinId);
+      }
+    }
+    let est={};
+    if(estadoBinId){
+      const res=await fetch(`https://api.jsonbin.io/v3/b/${estadoBinId}/latest`,{headers});
+      const json=await res.json();
+      const raw=json.record||json;
+      est=raw.estado||{};
+    }
+    const peds=pedidos;
 
     const total=peds.length;
     const entregados=peds.filter(p=>est[p.id]&&est[p.id].done).length;

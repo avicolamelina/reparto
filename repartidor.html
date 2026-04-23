@@ -230,18 +230,78 @@ function guardarComentario(id){
   el.style.borderColor='var(--green)';
   setTimeout(()=>{el.style.borderColor='';},1200);
 }
+let ESTADO_BIN=''; // bin separado solo para estado
+
 async function guardarEstado(){
-  if(!BINID||!APIKEY||guardandoEstado)return;
+  if(!APIKEY||guardandoEstado)return;
   guardandoEstado=true;
+  // Mostrar indicador
+  mostrarGuardando(true);
   try{
-    const datos={pedidos,clientes,fecha,estado};
-    await fetch(`https://api.jsonbin.io/v3/b/${BINID}`,{
-      method:'PUT',
-      headers:{'Content-Type':'application/json','X-Access-Key':APIKEY},
-      body:JSON.stringify(datos)
-    });
-  }catch(e){console.error('Error guardando estado:',e);}
-  finally{guardandoEstado=false;}
+    const payload={binPedidos:BINID, fecha, estado};
+    if(ESTADO_BIN){
+      // Actualizar bin existente
+      const res=await fetch(`https://api.jsonbin.io/v3/b/${ESTADO_BIN}`,{
+        method:'PUT',
+        headers:{'Content-Type':'application/json','X-Access-Key':APIKEY},
+        body:JSON.stringify(payload)
+      });
+      if(!res.ok) throw new Error('PUT failed '+res.status);
+    } else {
+      // Crear bin nuevo para el estado
+      const res=await fetch('https://api.jsonbin.io/v3/b',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','X-Access-Key':APIKEY,'X-Bin-Private':'false','X-Bin-Name':'estado-'+fecha},
+        body:JSON.stringify(payload)
+      });
+      if(!res.ok) throw new Error('POST failed '+res.status);
+      const json=await res.json();
+      ESTADO_BIN=json.metadata.id;
+      // Guardar en localStorage
+      localStorage.setItem('estado_bin_'+BINID, ESTADO_BIN);
+      // Tambien actualizar el bin de pedidos con la referencia al bin de estado
+      // asi el gestor puede encontrarlo sin localStorage
+      try{
+        const resPed=await fetch(`https://api.jsonbin.io/v3/b/${BINID}/latest`,{headers:{'X-Access-Key':APIKEY}});
+        const jPed=await resPed.json();
+        const datoPed=jPed.record||jPed;
+        datoPed.estadoBinId=ESTADO_BIN;
+        await fetch(`https://api.jsonbin.io/v3/b/${BINID}`,{
+          method:'PUT',
+          headers:{'Content-Type':'application/json','X-Access-Key':APIKEY},
+          body:JSON.stringify(datoPed)
+        });
+      }catch(e2){console.log('No se pudo actualizar referencia en pedidos bin',e2);}
+    }
+    mostrarGuardando(false, true);
+  }catch(e){
+    console.error('Error guardando estado:',e);
+    mostrarGuardando(false, false, e.message);
+  }finally{
+    guardandoEstado=false;
+  }
+}
+
+function mostrarGuardando(cargando, ok, err){
+  let el=document.getElementById('syncStatus');
+  if(!el){
+    el=document.createElement('div');
+    el.id='syncStatus';
+    el.style.cssText='position:fixed;bottom:1rem;right:1rem;padding:.4rem .9rem;border-radius:8px;font-size:.85rem;font-weight:700;z-index:999;transition:opacity .5s;';
+    document.body.appendChild(el);
+  }
+  if(cargando){
+    el.style.background='#2980b9';el.style.color='#fff';el.style.opacity='1';
+    el.textContent='⏳ Guardando...';
+  } else if(ok){
+    el.style.background='#27ae60';el.style.color='#fff';el.style.opacity='1';
+    el.textContent='✓ Guardado';
+    setTimeout(()=>{el.style.opacity='0';},2000);
+  } else {
+    el.style.background='#c0392b';el.style.color='#fff';el.style.opacity='1';
+    el.textContent='❌ '+(err||'Error al guardar');
+    setTimeout(()=>{el.style.opacity='0';},4000);
+  }
 }
 
 function render(){
@@ -339,25 +399,25 @@ function mostrarError(msg){
 }
 
 async function sincronizar(){
-  if(!BINID)return;
+  if(!ESTADO_BIN&&!BINID)return;
   const btn=document.getElementById('btnSync');
   btn.textContent='⏳';btn.disabled=true;
   try{
-    const headers={};
-    if(APIKEY)headers['X-Access-Key']=APIKEY;
-    const res=await fetch(`https://api.jsonbin.io/v3/b/${BINID}/latest`,{headers});
-    const json=await res.json();
-    const raw=json.record||json;
-    if(raw.estado){
-      // Merge: keep local done=true, update with remote
-      Object.keys(raw.estado).forEach(id=>{
-        if(!estado[id]) estado[id]=raw.estado[id];
-        else{
-          // keep done if local is true
-          if(!estado[id].done) estado[id].done=raw.estado[id].done;
-          if(!estado[id].comentario) estado[id].comentario=raw.estado[id].comentario;
-        }
-      });
+    if(ESTADO_BIN){
+      const headers={};
+      if(APIKEY)headers['X-Access-Key']=APIKEY;
+      const res=await fetch(`https://api.jsonbin.io/v3/b/${ESTADO_BIN}/latest`,{headers});
+      const json=await res.json();
+      const raw=json.record||json;
+      if(raw.estado){
+        Object.keys(raw.estado).forEach(id=>{
+          if(!estado[id]) estado[id]=raw.estado[id];
+          else{
+            if(!estado[id].done&&raw.estado[id].done) estado[id].done=true;
+            if(!estado[id].comentario&&raw.estado[id].comentario) estado[id].comentario=raw.estado[id].comentario;
+          }
+        });
+      }
     }
     render();
     btn.textContent='✓';
