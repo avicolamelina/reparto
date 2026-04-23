@@ -6,460 +6,307 @@
 <title>Reparto del día</title>
 <style>
 :root{
-  --bg:#0f0f0f;
-  --surface:#1a1a1a;
-  --surface2:#222;
-  --border:#2e2e2e;
-  --text:#f0ede8;
-  --text2:#888;
-  --accent:#e74c3c;
-  --green:#2ecc71;
-  --blue:#3498db;
-  --mono:'Courier New',monospace;
-  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
-  --c-pollo:#5dade2;
-  --c-cong:#58d68d;
-  --c-huevo:#f0b27a;
-  --c-var:#c39bd3;
-  --c-kg:#f1948a;
+  --bg:#f7f7f5;--surface:#fff;--surface2:#f0f0ee;--border:#e0ddd8;
+  --text:#1c1c1a;--text2:#888;--accent:#c0392b;--green:#27ae60;
+  --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);}
+html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:var(--font);font-size:16px;}
 
 /* SPLASH */
-#splash{
-  position:fixed;inset:0;background:var(--bg);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  z-index:999;transition:opacity .4s;
-}
+#splash{position:fixed;inset:0;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;transition:opacity .35s;}
 #splash.hide{opacity:0;pointer-events:none;}
-.splash-logo{font-size:2.8rem;margin-bottom:.5rem;}
-.splash-title{font-family:var(--mono);font-size:.85rem;text-transform:uppercase;letter-spacing:.15em;color:var(--text2);margin-bottom:2rem;}
-.splash-bar{width:160px;height:2px;background:var(--border);border-radius:2px;overflow:hidden;}
-.splash-progress{height:100%;background:var(--accent);width:0;transition:width .6s ease;}
+.splash-icon{font-size:3rem;margin-bottom:.75rem;}
+.splash-txt{font-size:1rem;color:var(--text2);margin-bottom:1.5rem;font-weight:500;}
+.splash-bar{width:160px;height:4px;background:var(--border);border-radius:4px;overflow:hidden;}
+.splash-prog{height:100%;background:var(--accent);width:0;transition:width .5s ease;}
 
 /* HEADER */
-.app-header{
-  position:sticky;top:0;z-index:100;
-  background:var(--surface);border-bottom:1px solid var(--border);
-  padding:.75rem 1rem;
-  display:flex;align-items:center;justify-content:space-between;
-}
-.header-left{display:flex;flex-direction:column;gap:.15rem;}
-.header-title{font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.12em;color:var(--text2);}
-.header-fecha{font-size:1rem;font-weight:600;letter-spacing:-.01em;}
-.header-badge{
-  background:var(--accent);color:#fff;
-  font-family:var(--mono);font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;
-  padding:.25rem .6rem;border-radius:2px;
-}
+.header{background:#fff;border-bottom:2px solid var(--border);padding:.9rem 1.1rem;position:sticky;top:0;z-index:100;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+.header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:.3rem;}
+.header-title{font-size:1.15rem;font-weight:800;color:var(--text);}
+.header-badge{background:var(--accent);color:#fff;font-size:.8rem;font-weight:700;padding:.25rem .7rem;border-radius:20px;}
+.header-fecha{font-size:.9rem;color:var(--text2);font-weight:500;}
+.header-estado{font-size:.85rem;font-weight:700;}
 
-/* FILTRO REPARTOS */
-.filtro-wrap{
-  background:var(--surface);border-bottom:1px solid var(--border);
-  padding:.5rem .75rem;overflow-x:auto;
-  display:flex;gap:.4rem;align-items:center;
-  -webkit-overflow-scrolling:touch;
-  scrollbar-width:none;
-}
-.filtro-wrap::-webkit-scrollbar{display:none;}
-.filtro-btn{
-  flex-shrink:0;
-  padding:.38rem .85rem;
-  border:1px solid var(--border);
-  background:transparent;color:var(--text2);
-  font-family:var(--mono);font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;
-  cursor:pointer;border-radius:2px;transition:all .15s;
-  white-space:nowrap;
-}
-.filtro-btn.active{background:var(--text);color:var(--bg);border-color:var(--text);}
-.filtro-btn.active-ARIEL{background:#1a5276;color:#fff;border-color:#1a5276;}
-.filtro-btn.active-GABRIEL{background:#512e5f;color:#fff;border-color:#512e5f;}
-.filtro-btn.active-MARTIN{background:#0e6655;color:#fff;border-color:#0e6655;}
-.filtro-btn.active-FEDERICO{background:#784212;color:#fff;border-color:#784212;}
-.filtro-btn.active-DEPOSITO{background:#2c3e50;color:#fff;border-color:#2c3e50;}
+/* FILTROS */
+.filtros{display:flex;gap:.4rem;overflow-x:auto;padding:.6rem 1.1rem;background:#fff;border-bottom:1.5px solid var(--border);-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.filtros::-webkit-scrollbar{display:none;}
+.filt-btn{flex-shrink:0;padding:.4rem 1rem;border:2px solid var(--border);border-radius:20px;font-size:.9rem;font-weight:700;background:transparent;cursor:pointer;color:var(--text2);transition:all .15s;white-space:nowrap;}
+.filt-btn:active{transform:scale(.95);}
+.filt-btn.active{background:var(--text);color:#fff;border-color:var(--text);}
+.filt-ARIEL.active{background:#1a5276;border-color:#1a5276;color:#fff;}
+.filt-GABRIEL.active{background:#512e5f;border-color:#512e5f;color:#fff;}
+.filt-MARTIN.active{background:#0e6655;border-color:#0e6655;color:#fff;}
+.filt-FEDERICO.active{background:#784212;border-color:#784212;color:#fff;}
+.filt-DEPOSITO.active{background:#2c3e50;border-color:#2c3e50;color:#fff;}
 
-/* TOTALES BANNER */
-.totales-banner{
-  background:var(--surface2);border-bottom:1px solid var(--border);
-  padding:.55rem .9rem;
-}
-.tot-label{font-family:var(--mono);font-size:.58rem;text-transform:uppercase;letter-spacing:.1em;color:var(--text2);margin-bottom:.35rem;}
-.tot-chips{display:flex;flex-wrap:wrap;gap:.3rem;}
-.tot-chip{
-  padding:.22rem .5rem;border-radius:2px;
-  font-family:var(--mono);font-size:.72rem;
-  border:1px solid var(--border);background:var(--surface);
-  color:var(--text);white-space:nowrap;
-}
-.tot-chip b{color:var(--text);}
-.tot-chip.cat-pollo{border-color:#1a5276;color:var(--c-pollo);}
-.tot-chip.cat-cong{border-color:#0e6655;color:var(--c-cong);}
-.tot-chip.cat-huevo{border-color:#784212;color:var(--c-huevo);}
-.tot-chip.cat-var{border-color:#512e5f;color:var(--c-var);}
-.tot-chip.cat-kg{border-color:#922b21;color:var(--c-kg);}
+/* BODY */
+.body{max-width:600px;margin:0 auto;padding:1rem 1rem 3rem;}
 
-/* CONTENT */
-#content{padding:.75rem .75rem 2rem;}
+/* TOTALES */
+.totales-box{background:#fff;border:2px solid var(--border);border-radius:12px;padding:1rem 1.1rem;margin-bottom:1.1rem;}
+.totales-title{font-size:.82rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);margin-bottom:.85rem;}
+/* GRID DE CUADROS */
+.tot-grid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:.6rem;}
+.tot-cuadro{border-radius:10px;padding:.7rem .8rem;border:2px solid currentColor;display:flex;flex-direction:column;gap:.2rem;}
+.tot-cuadro-num{font-size:2rem;font-weight:900;line-height:1;}
+.tot-cuadro-label{font-size:.8rem;font-weight:700;opacity:.85;}
+.tot-cuadro-sub{font-size:.72rem;opacity:.7;line-height:1.4;}
+.tot-cuadro.cuadro-pollo{color:#1a5276;background:#eaf4fb;}
+.tot-cuadro.cuadro-cong{color:#0e6655;background:#eafaf7;}
+.tot-cuadro.cuadro-huevo{color:#784212;background:#fdf3e8;}
+.tot-cuadro.cuadro-var{color:#512e5f;background:#f5eef8;}
+.tot-cuadro.cuadro-kg{color:#c0392b;background:#fdf0ef;}
+/* pills chicas para detalle dentro de cuadro */
+.tot-pill{padding:.2rem .55rem;border-radius:20px;font-size:.8rem;font-weight:700;border:1.5px solid currentColor;white-space:nowrap;}
+.tot-pills{display:flex;flex-wrap:wrap;gap:.25rem;margin-top:.35rem;}
+.pill-pollo{color:#1a5276;background:#eaf4fb;}
+.pill-cong{color:#0e6655;background:#eafaf7;}
+.pill-huevo{color:#784212;background:#fdf3e8;}
+.pill-var{color:#512e5f;background:#f5eef8;}
+.pill-kg{color:#c0392b;background:#fdf0ef;}
 
-/* REPARTO SECTION */
-.rep-section{margin-bottom:1.2rem;}
-.rep-section-header{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:.4rem .6rem;margin-bottom:.5rem;
-  border-left:3px solid currentColor;background:var(--surface);
-}
-.rep-section-name{font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;font-weight:bold;}
-.rep-section-count{font-family:var(--mono);font-size:.65rem;color:var(--text2);}
-.color-ARIEL{color:#5dade2;} .color-GABRIEL{color:#af7ac5;} .color-MARTIN{color:#52be80;} .color-FEDERICO{color:#f0b27a;} .color-DEPOSITO{color:#85929e;}
-
-/* MAPS REPARTO BTN */
-.maps-recorrido{
-  display:flex;align-items:center;gap:.4rem;
-  padding:.4rem .7rem;margin-bottom:.55rem;
-  background:rgba(52,152,219,.12);border:1px solid rgba(52,152,219,.3);
-  color:#5dade2;font-family:var(--mono);font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;
-  text-decoration:none;border-radius:2px;
-}
-.maps-recorrido svg{flex-shrink:0;}
+/* SECCION REPARTO */
+.rep-section-title{font-size:.85rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;padding:.5rem 0;margin:1rem 0 .5rem;border-bottom:2px solid var(--border);}
 
 /* CARD CLIENTE */
-.cli-card{
-  background:var(--surface);border:1px solid var(--border);
-  border-radius:4px;margin-bottom:.55rem;overflow:hidden;
-}
-.cli-card-header{
-  padding:.55rem .75rem;border-bottom:1px solid var(--border);
-  display:flex;align-items:center;justify-content:space-between;gap:.5rem;
-}
-.cli-nombre{font-size:.95rem;font-weight:600;letter-spacing:-.01em;}
-.cli-kg-tag{
-  flex-shrink:0;font-family:var(--mono);font-size:.6rem;
-  padding:.15rem .4rem;border:1px solid var(--c-kg);color:var(--c-kg);border-radius:2px;
-}
-.cli-card-body{padding:.55rem .75rem;}
+.cli-card{background:#fff;border:2px solid var(--border);border-radius:12px;margin-bottom:.85rem;overflow:hidden;transition:border-color .2s;}
+.cli-card.done{border-color:#b7e4c7;}
+.cli-card-head{padding:.8rem 1rem;border-bottom:2px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:.5rem;}
+.cli-card.done .cli-card-head{background:#f0faf4;border-bottom-color:#b7e4c7;}
+.cli-nombre{font-size:1.1rem;font-weight:800;line-height:1.2;}
+.cli-check{width:36px;height:36px;border-radius:50%;border:2.5px solid var(--border);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;transition:all .2s;}
+.cli-check.done{background:var(--green);border-color:var(--green);color:#fff;}
+.cli-card-body{padding:.8rem 1rem;}
+.cli-card.done .cli-card-body{opacity:.45;}
 
-/* PRODUCTOS */
-.prod-grupo{margin-bottom:.35rem;}
-.prod-grupo-label{
-  font-family:var(--mono);font-size:.58rem;text-transform:uppercase;letter-spacing:.09em;
-  margin-bottom:.2rem;
-}
-.prod-items-wrap{display:flex;flex-wrap:wrap;gap:.25rem;}
-.prod-pill{
-  padding:.18rem .45rem;border-radius:2px;
-  font-family:var(--mono);font-size:.73rem;
-  background:var(--surface2);border:1px solid var(--border);
-  white-space:nowrap;
-}
-.prod-pill b{margin-right:.2rem;}
-.prod-pill.cat-pollo{background:rgba(29,97,169,.18);border-color:#1d61a9;}
-.prod-pill.cat-cong{background:rgba(14,102,85,.18);border-color:#0e6655;}
-.prod-pill.cat-huevo{background:rgba(120,66,18,.18);border-color:#784212;}
-.prod-pill.cat-var{background:rgba(81,46,95,.18);border-color:#512e5f;}
-.prod-pill.cat-kg{background:rgba(146,43,33,.18);border-color:#922b21;}
+/* GRUPOS PRODUCTOS */
+.prod-grupo{margin-bottom:.6rem;}
+.prod-grupo:last-child{margin-bottom:0;}
+.prod-grupo-title{font-size:.78rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.3rem;}
+.prod-grupo-pills{display:flex;flex-wrap:wrap;gap:.3rem;}
+.prod-pill{padding:.3rem .75rem;border-radius:20px;font-size:.95rem;font-weight:700;border:2px solid currentColor;}
 
-/* OBS */
-.cli-obs{
-  margin-top:.4rem;padding:.35rem .5rem;
-  background:rgba(231,76,60,.08);border-left:2px solid var(--accent);
-  font-size:.75rem;color:#e59e97;font-style:italic;
-}
+/* OBS Y DIR */
+.cli-obs{margin-top:.6rem;padding:.5rem .75rem;background:#fdf0ef;border-radius:8px;font-size:.92rem;color:#a93226;font-style:italic;}
+.cli-dir{margin-top:.6rem;display:flex;align-items:center;gap:.5rem;}
+.cli-dir-txt{font-size:.9rem;color:#2980b9;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.cli-maps-btn{flex-shrink:0;padding:.35rem .85rem;background:#2980b9;color:#fff;border:none;border-radius:8px;font-size:.88rem;font-weight:700;cursor:pointer;text-decoration:none;white-space:nowrap;}
 
-/* DIRECCIÓN */
-.cli-dir{
-  margin-top:.4rem;
-  display:flex;align-items:center;justify-content:space-between;gap:.5rem;
-}
-.cli-dir-text{font-size:.75rem;color:var(--text2);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.cli-maps-btn{
-  flex-shrink:0;
-  display:flex;align-items:center;gap:.25rem;
-  padding:.28rem .65rem;
-  background:rgba(52,152,219,.15);border:1px solid rgba(52,152,219,.4);
-  color:#5dade2;font-family:var(--mono);font-size:.65rem;text-transform:uppercase;letter-spacing:.05em;
-  text-decoration:none;border-radius:2px;white-space:nowrap;
-}
+/* RECORRIDO */
+.maps-recorrido{display:flex;align-items:center;gap:.5rem;padding:.55rem 1rem;background:#eaf4fb;border:2px solid #aed6f1;border-radius:10px;color:#1a5276;font-size:.9rem;font-weight:700;text-decoration:none;margin-bottom:.75rem;}
 
 /* EMPTY / ERROR */
-.empty-state{
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  padding:3rem 1.5rem;text-align:center;gap:.75rem;
-}
-.empty-icon{font-size:2.5rem;opacity:.3;}
-.empty-msg{font-size:.85rem;color:var(--text2);line-height:1.6;}
-.empty-code{font-family:var(--mono);font-size:.72rem;color:var(--text2);background:var(--surface);padding:.5rem .75rem;border:1px solid var(--border);margin-top:.5rem;word-break:break-all;}
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:3rem 1.5rem;text-align:center;gap:.75rem;}
+.empty-icon{font-size:3rem;}
+.empty-msg{font-size:1rem;color:var(--text2);line-height:1.6;}
+.error-box{background:#fdf0ef;border:2px solid #f5b7b1;border-radius:10px;padding:1rem;font-size:.9rem;color:#a93226;margin-top:.5rem;}
 
-/* FOOTER */
-.footer{
-  text-align:center;padding:1rem;
-  font-family:var(--mono);font-size:.6rem;color:var(--text2);
-  letter-spacing:.06em;text-transform:uppercase;
-  border-top:1px solid var(--border);margin-top:.5rem;
-}
+/* READONLY BANNER */
+.readonly-banner{background:var(--green);color:#fff;text-align:center;padding:.6rem;font-size:.9rem;font-weight:700;letter-spacing:.04em;}
 </style>
 </head>
 <body>
 
-<!-- SPLASH -->
 <div id="splash">
-  <div class="splash-logo">🚚</div>
-  <div class="splash-title">Cargando reparto...</div>
-  <div class="splash-bar"><div class="splash-progress" id="splashBar"></div></div>
+  <div class="splash-icon">🚚</div>
+  <div class="splash-txt">Cargando reparto...</div>
+  <div class="splash-bar"><div class="splash-prog" id="splashProg"></div></div>
 </div>
 
-<!-- HEADER -->
-<div class="app-header" id="appHeader" style="display:none">
-  <div class="header-left">
-    <div class="header-title">Reparto del día</div>
-    <div class="header-fecha" id="hFecha">—</div>
+<div id="appRoot" style="display:none">
+  <div class="readonly-banner">📋 Vista solo lectura — Repartidor</div>
+  <div class="header">
+    <div class="header-top">
+      <div class="header-title">🐔 Reparto del día</div>
+      <div class="header-badge" id="hBadge"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div class="header-fecha" id="hFecha"></div>
+      <div class="header-estado" id="hEstado"></div>
+    </div>
   </div>
-  <div class="header-badge" id="hBadge">— pedidos</div>
+  <div class="filtros" id="filtros"></div>
+  <div class="body">
+    <div id="totales"></div>
+    <div id="content"></div>
+  </div>
 </div>
-
-<!-- FILTRO -->
-<div class="filtro-wrap" id="filtroWrap" style="display:none"></div>
-
-<!-- TOTALES -->
-<div class="totales-banner" id="totalesBanner" style="display:none">
-  <div class="tot-label" id="totLabel">Totales</div>
-  <div class="tot-chips" id="totChips"></div>
-</div>
-
-<!-- CONTENT -->
-<div id="content"></div>
-
-<!-- FOOTER -->
-<div class="footer" id="appFooter" style="display:none">Solo lectura · Gestor de Pedidos</div>
 
 <script>
-const CATEGORIAS=[
-  {key:'pollo', label:'Pollo', cls:'cat-pollo', color:'#5dade2', prods:[
-    {key:'pollo',label:'C/ Pollo'},{key:'x7',label:'C/ x7'},
-    {key:'x8',label:'C/ x8'},{key:'x9',label:'C/ x9'}]},
-  {key:'cong', label:'Congelados', cls:'cat-cong', color:'#58d68d', prods:[
-    {key:'sup10',label:'C/ Sup x10'},{key:'interf',label:'C/ Interf'},
-    {key:'fresca',label:'C/ Fresca'},{key:'sup15',label:'C/ Sup x15'},
-    {key:'cuartos',label:'C/ 4tos'},{key:'pmd',label:'C/ PMD'}]},
-  {key:'huevo', label:'Huevo', cls:'cat-huevo', color:'#f0b27a', prods:[
-    {key:'extra',label:'C/ Extra'},{key:'bco1',label:'C/ Blanco N1'},
-    {key:'bco2',label:'C/ Blanco N2'},{key:'color',label:'C/ Color'}]},
-  {key:'var', label:'Variados', cls:'cat-var', color:'#c39bd3', prods:[
-    {key:'tirita',label:'C/ Tirita'},{key:'mila',label:'C/ Mila'},
-    {key:'patitas',label:'C/ Patitas'},{key:'medallon',label:'C/ Medallon'}]}
+const CATS=[
+  {key:'pollo',label:'Cajones de Pollo',pillCls:'pill-pollo',color:'#1a5276',prods:[
+    {key:'pollo',label:'C/ Pollo'},{key:'x7',label:'C/ x7'},{key:'x8',label:'C/ x8'},{key:'x9',label:'C/ x9'}]},
+  {key:'cong',label:'Congelados',pillCls:'pill-cong',color:'#0e6655',prods:[
+    {key:'sup10',label:'C/ Sup x10'},{key:'interf',label:'C/ Interf'},{key:'fresca',label:'C/ Fresca'},
+    {key:'sup15',label:'C/ Sup x15'},{key:'cuartos',label:'C/ 4tos'},{key:'pmd',label:'C/ PMD'}]},
+  {key:'huevo',label:'Huevo',pillCls:'pill-huevo',color:'#784212',prods:[
+    {key:'extra',label:'C/ Extra'},{key:'bco1',label:'C/ Blanco N1'},{key:'bco2',label:'C/ Blanco N2'},{key:'color',label:'C/ Color'}]},
+  {key:'var',label:'Variados',pillCls:'pill-var',color:'#512e5f',prods:[
+    {key:'tirita',label:'C/ Tirita'},{key:'mila',label:'C/ Mila'},{key:'patitas',label:'C/ Patitas'},{key:'medallon',label:'C/ Medallon'}]}
 ];
-const KG_PRODS=[{key:'sup_kg',label:'Sup (kg)',cls:'cat-kg'},{key:'cuartos_kg',label:'4tos (kg)',cls:'cat-kg'}];
-const ALL_KEYS=[];CATEGORIAS.forEach(c=>c.prods.forEach(p=>ALL_KEYS.push(p.key)));KG_PRODS.forEach(p=>ALL_KEYS.push(p.key));
+const KG=[{key:'sup_kg',label:'Sup (kg)',pillCls:'pill-kg'},{key:'cuartos_kg',label:'4tos (kg)',pillCls:'pill-kg'}];
 const REPARTOS=['ARIEL','GABRIEL','MARTIN','FEDERICO','DEPOSITO'];
 
-let pedidos=[], clientes=[], filtroActivo='TODOS', fecha='';
+let pedidos=[],clientes=[],fecha='',filtro='TODOS';
+const entregados=new Set();
 
-function fn(n){
-  if(!n||n===0)return null;
-  if(n===Math.floor(n))return String(n);
-  if(Math.abs(n%1-.5)<.001)return `${Math.floor(n)}½`;
-  return String(n);
-}
-function calcTot(ps){
-  const t={};ALL_KEYS.forEach(k=>t[k]=0);
-  ps.forEach(p=>ALL_KEYS.forEach(k=>t[k]+=(p.prod[k]||0)));
-  return t;
-}
+function allKeys(){const k=[];CATS.forEach(c=>c.prods.forEach(p=>k.push(p.key)));KG.forEach(p=>k.push(p.key));return k;}
+function calcTot(ps){const t={};allKeys().forEach(k=>t[k]=0);ps.forEach(p=>allKeys().forEach(k=>t[k]+=(p.prod[k]||0)));return t;}
+function fn(n){if(!n||n===0)return null;if(n===Math.floor(n))return String(n);if(Math.abs(n%1-.5)<.001)return Math.floor(n)+'½';return String(n);}
 function getCli(nombre){return clientes.find(c=>c.nombre===nombre)||null;}
+
+function formatFecha(f){
+  if(!f)return '';
+  const p=f.split('-'),yyyy=parseInt(p[0]),mm=parseInt(p[1]),dd=parseInt(p[2]);
+  const dias=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  const meses=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const d=new Date(yyyy,mm-1,dd);
+  return `${dias[d.getDay()]} ${dd} de ${meses[mm-1]}`;
+}
 
 async function parsearDatos(){
   const params=new URLSearchParams(window.location.search);
   const binId=params.get('bin');
-  const rawKey=params.get('k')||''; const key=rawKey?atob(rawKey):'';
+  const rawKey=params.get('k')||'';
+  const key=rawKey?atob(rawKey):'';
   if(binId){
     const headers={};
-    if(key) headers['X-Access-Key']=key;
+    if(key)headers['X-Access-Key']=key;
     const res=await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`,{headers});
     const json=await res.json();
-    if(!res.ok) throw new Error('Error '+res.status+': '+(json.message||'Sin datos'));
-    // JSONBin v3 devuelve los datos en json.record
+    if(!res.ok)throw new Error('Error '+res.status+': '+(json.message||'No se pudo cargar'));
     const raw=json.record||json;
-    if(!raw.pedidos) throw new Error('Estructura inesperada: '+JSON.stringify(json).substring(0,150));
-    pedidos=raw.pedidos||[];
-    clientes=raw.clientes||[];
-    fecha=raw.fecha||'';
-    return true;
+    if(!raw.pedidos)throw new Error('Estructura inesperada: '+JSON.stringify(json).substring(0,120));
+    pedidos=raw.pedidos||[];clientes=raw.clientes||[];fecha=raw.fecha||'';
+    return;
   }
-  // Fallback: leer de URL ?d= (legacy)
   const d=params.get('d');
-  if(!d) throw new Error('El link no contiene datos. Pedile al encargado que genere un nuevo link.');
+  if(!d)throw new Error('El link no tiene datos. Pedile al encargado un link nuevo.');
   const raw=JSON.parse(decodeURIComponent(escape(atob(d))));
-  pedidos=raw.pedidos||[];
-  clientes=raw.clientes||[];
-  fecha=raw.fecha||'';
-  return true;
-}
-
-function formatFecha(f){
-  if(!f)return '';
-  const [yyyy,mm,dd]=f.split('-');
-  const dias=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
-  const meses=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-  const d=new Date(parseInt(yyyy),parseInt(mm)-1,parseInt(dd));
-  return `${dias[d.getDay()]} ${parseInt(dd)} de ${meses[parseInt(mm)-1]}`;
+  pedidos=raw.pedidos||[];clientes=raw.clientes||[];fecha=raw.fecha||'';
 }
 
 function renderFiltros(){
-  const wrap=document.getElementById('filtroWrap');
-  const repartosConPedidos=REPARTOS.filter(r=>pedidos.some(p=>p.reparto===r));
-  const items=['TODOS',...repartosConPedidos];
-  wrap.innerHTML=items.map(r=>{
-    const label=r==='TODOS'?'Todos':r;
-    const cls=filtroActivo===r?(r==='TODOS'?'active':`active-${r}`):'';
-    return `<button class="filtro-btn ${cls}" onclick="setFiltro('${r}')">${label}</button>`;
-  }).join('');
-  wrap.style.display='flex';
-}
-
-function setFiltro(r){
-  filtroActivo=r;
-  renderFiltros();
-  renderTotales();
-  renderContent();
-}
-
-function renderTotales(){
-  const banner=document.getElementById('totalesBanner');
-  const label=document.getElementById('totLabel');
-  const chips=document.getElementById('totChips');
-  const ps=filtroActivo==='TODOS'?pedidos:pedidos.filter(p=>p.reparto===filtroActivo);
-  if(!ps.length){banner.style.display='none';return;}
-  const tot=calcTot(ps);
-  label.textContent=filtroActivo==='TODOS'?`Total general (${ps.length} pedidos)`:`Total ${filtroActivo} (${ps.length} pedidos)`;
-  const html=[];
-  CATEGORIAS.forEach(cat=>{
-    cat.prods.forEach(p=>{
-      const v=fn(tot[p.key]);
-      if(v) html.push(`<span class="tot-chip ${cat.cls}"><b>${v}</b> ${p.label}</span>`);
-    });
-  });
-  KG_PRODS.forEach(p=>{
-    const v=fn(tot[p.key]);
-    if(v) html.push(`<span class="tot-chip cat-kg"><b>${v}</b> ${p.label}</span>`);
-  });
-  if(!html.length){banner.style.display='none';return;}
-  chips.innerHTML=html.join('');
-  banner.style.display='block';
-}
-
-function buildMapsUrl(dirs, modo='recorrido'){
-  if(!dirs.length)return null;
-  if(dirs.length===1)return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(dirs[0])}`;
-  return `https://www.google.com/maps/dir/${dirs.map(d=>encodeURIComponent(d)).join('/')}`;
-}
-
-function renderContent(){
-  const content=document.getElementById('content');
-  const mostrarRepartos=filtroActivo==='TODOS'?REPARTOS:([filtroActivo]);
   const porR={};REPARTOS.forEach(r=>porR[r]=[]);
   pedidos.forEach(p=>{if(porR[p.reparto])porR[p.reparto].push(p);});
-
-  let html='';
-  let hayAlgo=false;
-
-  mostrarRepartos.forEach(r=>{
-    const ps=porR[r];if(!ps||!ps.length)return;
-    hayAlgo=true;
-    const colorClass=`color-${r}`;
-    const dirs=ps.map(p=>{const c=getCli(p.cliente);return c&&c.dir?c.dir:'';}).filter(Boolean);
-    const mapsUrl=dirs.length?buildMapsUrl(dirs):null;
-    const sectionHeader=filtroActivo==='TODOS'?`
-      <div class="rep-section-header ${colorClass}">
-        <span class="rep-section-name">${r}</span>
-        <span class="rep-section-count">${ps.length} entrega${ps.length>1?'s':''}</span>
-      </div>`:'';
-    const mapsBtn=mapsUrl?`
-      <a href="${mapsUrl}" target="_blank" class="maps-recorrido">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-        Recorrido completo (${dirs.length} parada${dirs.length>1?'s':''})
-      </a>`:'';
-
-    const cards=ps.map(p=>{
-      const cli=getCli(p.cliente);
-      const isKg=cli&&cli.kg;
-      const dir=cli&&cli.dir?cli.dir:'';
-      const mapsCliUrl=dir?`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(dir)}`:'';
-
-      // Productos por categoria
-      const grupos=CATEGORIAS.map(cat=>{
-        const items=cat.prods.filter(pr=>{const v=fn(p.prod[pr.key]);return !!v;});
-        if(!items.length)return '';
-        const pills=items.map(pr=>`<span class="prod-pill ${cat.cls}"><b>${fn(p.prod[pr.key])}</b>${pr.label}</span>`).join('');
-        return `<div class="prod-grupo"><div class="prod-grupo-label" style="color:${cat.color}">${cat.label}</div><div class="prod-items-wrap">${pills}</div></div>`;
-      }).filter(Boolean).join('');
-
-      const kgGrupo=KG_PRODS.filter(pr=>fn(p.prod[pr.key]));
-      const kgHtml=kgGrupo.length?`<div class="prod-grupo"><div class="prod-grupo-label" style="color:var(--c-kg)">Por kg</div><div class="prod-items-wrap">${kgGrupo.map(pr=>`<span class="prod-pill cat-kg"><b>${fn(p.prod[pr.key])}</b>${pr.label}</span>`).join('')}</div></div>`:'';
-
-      return `
-        <div class="cli-card">
-          <div class="cli-card-header">
-            <span class="cli-nombre">${p.cliente}</span>
-            ${isKg?'<span class="cli-kg-tag">kg</span>':''}
-          </div>
-          <div class="cli-card-body">
-            ${grupos||kgHtml?grupos+kgHtml:'<span style="font-size:.75rem;color:var(--text2)">Sin productos</span>'}
-            ${p.obs?`<div class="cli-obs">📝 ${p.obs}</div>`:''}
-            ${dir?`<div class="cli-dir">
-              <span class="cli-dir-text">📍 ${dir}</span>
-              <a href="${mapsCliUrl}" target="_blank" class="cli-maps-btn">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                Maps
-              </a>
-            </div>`:''}
-          </div>
-        </div>`;
-    }).join('');
-
-    html+=`<div class="rep-section">${sectionHeader}${mapsBtn}${cards}</div>`;
-  });
-
-  if(!hayAlgo){
-    html=`<div class="empty-state">
-      <div class="empty-icon">📭</div>
-      <div class="empty-msg">No hay pedidos para mostrar en este reparto.</div>
-    </div>`;
-  }
-  content.innerHTML=html;
+  const activos=REPARTOS.filter(r=>porR[r].length>0);
+  document.getElementById('filtros').innerHTML=['TODOS',...activos].map(r=>{
+    const cls=filtro===r?`active ${r!=='TODOS'?'filt-'+r:''}`:'';
+    return `<button class="filt-btn ${cls}" onclick="setFiltro('${r}')">${r==='TODOS'?'🗂 Todos':r}</button>`;
+  }).join('');
 }
+
+function setFiltro(r){filtro=r;render();}
+function toggleEntrega(id){if(entregados.has(id))entregados.delete(id);else entregados.add(id);render();}
+
+function render(){
+  renderFiltros();
+  const porR={};REPARTOS.forEach(r=>porR[r]=[]);
+  pedidos.forEach(p=>{if(porR[p.reparto])porR[p.reparto].push(p);});
+  const reps=filtro==='TODOS'?REPARTOS.filter(r=>porR[r].length>0):[filtro];
+  const pedsFiltro=reps.flatMap(r=>porR[r]||[]);
+  const tot=calcTot(pedsFiltro);
+  const entregadosN=pedsFiltro.filter(p=>entregados.has(p.id)).length;
+  const pendientes=pedsFiltro.length-entregadosN;
+
+  // Header estado
+  document.getElementById('hEstado').innerHTML=`<span style="color:var(--green)">✓ ${entregadosN}</span> · <span style="color:var(--accent)">${pendientes} pendientes</span>`;
+
+  // TOTALES
+  const cuadroClass={pollo:'cuadro-pollo',cong:'cuadro-cong',huevo:'cuadro-huevo',var:'cuadro-var'};
+  const cuadrosCats=CATS.map(cat=>{
+    const items=cat.prods.filter(p=>tot[p.key]>0);
+    if(!items.length)return '';
+    const catSum=items.reduce((a,p)=>a+(tot[p.key]||0),0);
+    const detalle=items.map(p=>`<span class="tot-pill ${cat.pillCls}">${fn(tot[p.key])} ${p.label}</span>`).join('');
+    return `<div class="tot-cuadro ${cuadroClass[cat.key]}">
+      <div class="tot-cuadro-num">${fn(catSum)||0}</div>
+      <div class="tot-cuadro-label">${cat.label}</div>
+      <div class="tot-pills">${detalle}</div>
+    </div>`;
+  }).filter(Boolean).join('');
+  const kgItems=KG.filter(p=>tot[p.key]>0);
+  const kgCuadro=kgItems.length?`<div class="tot-cuadro cuadro-kg" style="grid-column:1/-1">
+    <div class="tot-cuadro-label">Por Kilogramo</div>
+    <div class="tot-pills">${kgItems.map(p=>`<span class="tot-pill pill-kg">${fn(tot[p.key])} ${p.label}</span>`).join('')}</div>
+  </div>`:'';
+  document.getElementById('totales').innerHTML=`<div class="totales-box">
+    <div class="totales-title">📦 Totales ${filtro==='TODOS'?'generales':filtro} · ${pedsFiltro.length} pedidos</div>
+    <div class="tot-grid">${cuadrosCats}${kgCuadro}</div>
+  </div>`;
+
+  // CARDS
+  document.getElementById('content').innerHTML=reps.map(r=>{
+    if(!porR[r]||!porR[r].length)return '';
+    const ps=porR[r];
+    const secTitle=filtro==='TODOS'?`<div class="rep-section-title" style="color:${getRepColor(r)}">${r} · ${ps.length} entregas</div>`:'';
+    const dirs=ps.map(p=>{const c=getCli(p.cliente);return c&&c.dir?c.dir:'';}).filter(Boolean);
+    const mapsUrl=dirs.length>1?`https://www.google.com/maps/dir/${dirs.map(d=>encodeURIComponent(d)).join('/')}`:(dirs.length===1?`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(dirs[0])}`:'');
+    const mapsBtn=mapsUrl?`<a href="${mapsUrl}" target="_blank" class="maps-recorrido">🗺 Recorrido completo · ${dirs.length} paradas</a>`:'';
+    const cards=ps.map(p=>{
+      const done=entregados.has(p.id);
+      const cli=getCli(p.cliente);
+      const dir=cli&&cli.dir?cli.dir:'';
+      const grupos=CATS.map(cat=>{
+        const items=cat.prods.filter(pr=>(p.prod[pr.key]||0)>0);
+        if(!items.length)return '';
+        const catSum=items.reduce((a,pr)=>a+(p.prod[pr.key]||0),0);
+        return `<div class="prod-grupo">
+          <div class="prod-grupo-title" style="color:${cat.color}">${cat.label} (${fn(catSum)} total)</div>
+          <div class="prod-grupo-pills">${items.map(pr=>`<span class="prod-pill ${cat.pillCls}">${fn(p.prod[pr.key])} ${pr.label}</span>`).join('')}</div>
+        </div>`;
+      }).filter(Boolean).join('');
+      const kgGrupo=KG.filter(pr=>(p.prod[pr.key]||0)>0);
+      const kgHtml=kgGrupo.length?`<div class="prod-grupo"><div class="prod-grupo-title" style="color:#c0392b">Por kg</div><div class="prod-grupo-pills">${kgGrupo.map(pr=>`<span class="prod-pill pill-kg">${fn(p.prod[pr.key])} ${pr.label}</span>`).join('')}</div></div>`:'';
+      return `<div class="cli-card ${done?'done':''}">
+        <div class="cli-card-head">
+          <div>
+            <div class="cli-nombre">${p.cliente}${cli&&cli.kg?' <span style="font-size:.75rem;font-weight:400;color:#c0392b">(kg)</span>':''}</div>
+            ${done?'<div style="font-size:.82rem;color:var(--green);font-weight:700;margin-top:.15rem">✓ Entregado</div>':''}
+          </div>
+          <button class="cli-check ${done?'done':''}" onclick="toggleEntrega(${p.id})">${done?'✓':'·'}</button>
+        </div>
+        <div class="cli-card-body">
+          ${grupos||kgHtml?grupos+kgHtml:'<span style="color:var(--text2)">Sin productos</span>'}
+          ${p.obs?`<div class="cli-obs">📝 ${p.obs}</div>`:''}
+          ${dir?`<div class="cli-dir"><span class="cli-dir-txt">📍 ${dir}</span><a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(dir)}" target="_blank" class="cli-maps-btn">Cómo llegar</a></div>`:''}
+        </div>
+      </div>`;
+    }).join('');
+    return secTitle+mapsBtn+cards;
+  }).join('');
+}
+
+function getRepColor(r){return{ARIEL:'#2980b9',GABRIEL:'#8e44ad',MARTIN:'#16a085',FEDERICO:'#d35400',DEPOSITO:'#7f8c8d'}[r]||'#888';}
 
 function mostrarError(msg){
   document.getElementById('splash').classList.add('hide');
-  document.getElementById('content').innerHTML=`
-    <div class="empty-state">
-      <div class="empty-icon">⚠️</div>
-      <div class="empty-msg">${msg}</div>
-      <div class="empty-code">Este link es generado desde la app de gestión de pedidos.<br>Pedile al encargado que lo vuelva a compartir.</div>
-    </div>`;
+  document.getElementById('appRoot').style.display='block';
+  document.getElementById('filtros').style.display='none';
+  document.getElementById('totales').innerHTML='';
+  document.getElementById('content').innerHTML=`<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-msg">${msg}</div><div class="error-box">Pedile al encargado que genere un nuevo link desde la app de gestión.</div></div>`;
+  document.getElementById('hBadge').textContent='Error';
+  document.getElementById('hFecha').textContent='';
 }
 
 async function arrancar(){
-  const bar=document.getElementById('splashBar');
-  bar.style.width='40%';
+  const prog=document.getElementById('splashProg');
+  prog.style.width='30%';
   try{
     await parsearDatos();
-    bar.style.width='100%';
-    setTimeout(()=>{
-      document.getElementById('splash').classList.add('hide');
-      document.getElementById('hFecha').textContent=formatFecha(fecha);
-      document.getElementById('hBadge').textContent=`${pedidos.length} pedido${pedidos.length!==1?'s':''}`;
-      document.getElementById('appHeader').style.display='flex';
-      document.getElementById('appFooter').style.display='block';
-      renderFiltros();
-      renderTotales();
-      renderContent();
-    },350);
+    prog.style.width='100%';
+    await new Promise(r=>setTimeout(r,400));
+    document.getElementById('splash').classList.add('hide');
+    document.getElementById('appRoot').style.display='block';
+    document.getElementById('hFecha').textContent=formatFecha(fecha);
+    document.getElementById('hBadge').textContent=`${pedidos.length} pedido${pedidos.length!==1?'s':''}`;
+    render();
   }catch(e){
-    bar.style.width='100%';
-    setTimeout(()=>{
-      document.getElementById('splash').classList.add('hide');
-      mostrarError(e.message);
-    },350);
+    prog.style.width='100%';
+    await new Promise(r=>setTimeout(r,300));
+    mostrarError(e.message);
   }
 }
 
